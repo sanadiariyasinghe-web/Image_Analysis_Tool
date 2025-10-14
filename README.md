@@ -2,7 +2,7 @@ Here’s a **complete, professional `README.md`** tailored for your **Agricultur
 
 ---
 
-### 📄 `README.md`
+
 
 ```markdown
 # Domain-Specific Image Analysis & Enhancement Tool (Agriculture)
