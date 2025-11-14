@@ -66,7 +66,6 @@ def safe_plot_show():
     except:
         plt.show(block=True)
 
-
 # ---------------------------------------------------------
 # Processing Functions
 # ---------------------------------------------------------
@@ -146,7 +145,6 @@ def canny_edge(img,low=50,high=150):
 
 def morphology_op(binary,op="erode",k=3):
     kernel=cv2.getStructuringElement(cv2.MORPH_RECT,(int(k),int(k)))
-    op=op.lower()
     if op=="erode": return cv2.erode(binary,kernel)
     if op=="dilate": return cv2.dilate(binary,kernel)
     if op=="open": return cv2.morphologyEx(binary,cv2.MORPH_OPEN,kernel)
@@ -189,9 +187,7 @@ def ideal_low_pass(gray,c=30):
     if back.max()>0: back=np.uint8(back/back.max()*255)
     return back
 
-def ideal_high_pass(gray,c=30):
-    return cv2.subtract(gray, ideal_low_pass(gray,c))
-
+def ideal_high_pass(gray,c=30): return cv2.subtract(gray, ideal_low_pass(gray,c))
 def gaussian_low_pass(gray, s=10):
     rows,cols=gray.shape
     crow,ccol=rows//2,cols//2
@@ -202,12 +198,10 @@ def gaussian_low_pass(gray, s=10):
     if back.max()>0: back=np.uint8(back/back.max()*255)
     return back
 
-def gaussian_high_pass(gray,s=10):
-    return cv2.subtract(gray, gaussian_low_pass(gray,s))
-
+def gaussian_high_pass(gray,s=10): return cv2.subtract(gray, gaussian_low_pass(gray,s))
 
 # ---------------------------------------------------------
-# MAIN APP (Tabbed Sidebar Style)
+# MAIN APP
 # ---------------------------------------------------------
 class ImageToolApp(ctk.CTk):
     def __init__(self):
@@ -228,14 +222,22 @@ class ImageToolApp(ctk.CTk):
         sidebar.grid(row=0, column=0, sticky="ns")
         sidebar.grid_propagate(False)
 
-        self.tabs = ["📁  Acquisition", "🎨  Color", "📐  Geometry",
-                     "✂  Filters", "🔍  Segmentation", "🌐  Frequency"]
+        self.tabs = [
+            "📁  Acquisition",
+            "🎨  Color",
+            "📐  Geometry",
+            "✂  Filters",
+            "⚙  Morphology",      # <-- ADDED
+            "🔍  Segmentation",
+            "🌐  Frequency"
+        ]
 
         self.current_tab = None
         for t in self.tabs:
-            btn = ctk.CTkButton(sidebar, text=t,
-                                height=48, anchor="w",
-                                command=lambda x=t: self.switch_tab(x))
+            btn = ctk.CTkButton(
+                sidebar, text=t, height=48, anchor="w",
+                command=lambda x=t: self.switch_tab(x)
+            )
             btn.pack(fill="x", padx=10, pady=4)
 
         # ---------------- Right Panel (Images) ----------------
@@ -249,7 +251,6 @@ class ImageToolApp(ctk.CTk):
 
         self.input_disp = ctk.CTkLabel(self.right, text="", fg_color=("gray20"), width=500, height=500) 
         self.output_disp = ctk.CTkLabel(self.right, text="", fg_color=("gray20"), width=500, height=500)
-
 
         self.input_disp.grid(row=1,column=0,sticky="nsew",padx=6,pady=6)
         self.output_disp.grid(row=1,column=1,sticky="nsew",padx=6,pady=6)
@@ -275,78 +276,101 @@ class ImageToolApp(ctk.CTk):
         # ----- Acquisition -----
         f = ctk.CTkFrame(self.tab_area)
         self.frames["📁  Acquisition"] = f
-
-        ctk.CTkButton(f, text="Upload Image", command=self.load_image).pack(fill="x", pady=6)
-        ctk.CTkButton(f, text="Save Output", command=self.save_output).pack(fill="x", pady=6)
-        ctk.CTkButton(f, text="Reset to Original", command=self.reset_image).pack(fill="x", pady=6)
-        ctk.CTkButton(f, text="Show Metadata", command=self.show_metadata).pack(fill="x", pady=6)
+        ctk.CTkButton(f,text="Upload Image",command=self.load_image).pack(fill="x", pady=6)
+        ctk.CTkButton(f,text="Save Output",command=self.save_output).pack(fill="x", pady=6)
+        ctk.CTkButton(f,text="Reset to Original",command=self.reset_image).pack(fill="x", pady=6)
+        ctk.CTkButton(f,text="Show Metadata",command=self.show_metadata).pack(fill="x", pady=6)
 
         # ----- Color -----
         f = ctk.CTkFrame(self.tab_area)
         self.frames["🎨  Color"] = f
-
-        ctk.CTkButton(f, text="Convert → Gray", command=self.act_grayscale).pack(fill="x", pady=6)
-        ctk.CTkButton(f, text="Convert → HSV", command=self.act_hsv).pack(fill="x", pady=6)
-        ctk.CTkButton(f, text="Convert → Binary", command=self.act_binary).pack(fill="x", pady=6)
-        ctk.CTkButton(f, text="Show Histogram", command=self.act_histogram).pack(fill="x", pady=6)
-        ctk.CTkButton(f, text="Equalize Gray", command=self.act_equalize_gray).pack(fill="x", pady=6)
-        ctk.CTkButton(f, text="Equalize Color", command=self.act_equalize_color).pack(fill="x", pady=6)
+        ctk.CTkButton(f,text="Convert → Gray",command=self.act_grayscale).pack(fill="x", pady=6)
+        ctk.CTkButton(f,text="Convert → HSV",command=self.act_hsv).pack(fill="x", pady=6)
+        ctk.CTkButton(f,text="Convert → Binary",command=self.act_binary).pack(fill="x", pady=6)
+        ctk.CTkButton(f,text="Show Histogram",command=self.act_histogram).pack(fill="x", pady=6)
+        ctk.CTkButton(f,text="Equalize Gray",command=self.act_equalize_gray).pack(fill="x", pady=6)
+        ctk.CTkButton(f,text="Equalize Color",command=self.act_equalize_color).pack(fill="x", pady=6)
 
         # ----- Geometry -----
         f = ctk.CTkFrame(self.tab_area)
         self.frames["📐  Geometry"] = f
-
         self.entry_rotate = ctk.CTkEntry(f, placeholder_text="Angle 45")
         self.entry_scale = ctk.CTkEntry(f, placeholder_text="sx,sy 0.5,0.5")
         self.entry_trans = ctk.CTkEntry(f, placeholder_text="tx,ty 50,30")
         self.entry_crop = ctk.CTkEntry(f, placeholder_text="x,y,w,h 50,50,200,200")
-
         self.entry_rotate.pack(fill="x", pady=4)
-        ctk.CTkButton(f, text="Rotate", command=self.act_rotate).pack(fill="x", pady=4)
+        ctk.CTkButton(f,text="Rotate",command=self.act_rotate).pack(fill="x", pady=4)
         self.entry_scale.pack(fill="x", pady=4)
-        ctk.CTkButton(f, text="Scale", command=self.act_scale).pack(fill="x", pady=4)
+        ctk.CTkButton(f,text="Scale",command=self.act_scale).pack(fill="x", pady=4)
         self.entry_trans.pack(fill="x", pady=4)
-        ctk.CTkButton(f, text="Translate", command=self.act_translate).pack(fill="x", pady=4)
+        ctk.CTkButton(f,text="Translate",command=self.act_translate).pack(fill="x", pady=4)
         self.entry_crop.pack(fill="x", pady=4)
-        ctk.CTkButton(f, text="Crop", command=self.act_crop).pack(fill="x", pady=4)
+        ctk.CTkButton(f,text="Crop",command=self.act_crop).pack(fill="x", pady=4)
 
         # ----- Filters -----
         f = ctk.CTkFrame(self.tab_area)
         self.frames["✂  Filters"] = f
-
         self.entry_k = ctk.CTkEntry(f, placeholder_text="Kernel size 5")
         self.entry_k.pack(fill="x", pady=4)
-        ctk.CTkButton(f, text="Average", command=self.act_average).pack(fill="x", pady=4)
-        ctk.CTkButton(f, text="Gaussian", command=self.act_gaussian).pack(fill="x", pady=4)
-        ctk.CTkButton(f, text="Median", command=self.act_median).pack(fill="x", pady=4)
-        ctk.CTkButton(f, text="Sharpen", command=self.act_sharpen).pack(fill="x", pady=4)
-        ctk.CTkButton(f, text="Sobel Edge", command=self.act_sobel).pack(fill="x", pady=4)
-        ctk.CTkButton(f, text="Laplacian Edge", command=self.act_laplacian).pack(fill="x", pady=4)
-        ctk.CTkButton(f, text="Canny Edge", command=self.act_canny).pack(fill="x", pady=4)
+        ctk.CTkButton(f,text="Average",command=self.act_average).pack(fill="x", pady=4)
+        ctk.CTkButton(f,text="Gaussian",command=self.act_gaussian).pack(fill="x", pady=4)
+        ctk.CTkButton(f,text="Median",command=self.act_median).pack(fill="x", pady=4)
+        ctk.CTkButton(f,text="Sharpen",command=self.act_sharpen).pack(fill="x", pady=4)
+        ctk.CTkButton(f,text="Sobel Edge",command=self.act_sobel).pack(fill="x", pady=4)
+        ctk.CTkButton(f,text="Laplacian Edge",command=self.act_laplacian).pack(fill="x", pady=4)
+        ctk.CTkButton(f,text="Canny Edge",command=self.act_canny).pack(fill="x", pady=4)
+
+        # ----- Morphology (ADDED) -----
+        f = ctk.CTkFrame(self.tab_area)
+        self.frames["⚙  Morphology"] = f
+
+        self.entry_morph = ctk.CTkEntry(f, placeholder_text="Kernel size 3")
+        self.entry_morph.pack(fill="x", pady=6)
+
+        ctk.CTkButton(f,text="Erosion",command=lambda:self.act_morph("erode")).pack(fill="x", pady=6)
+        ctk.CTkButton(f,text="Dilation",command=lambda:self.act_morph("dilate")).pack(fill="x", pady=6)
+        ctk.CTkButton(f,text="Opening",command=lambda:self.act_morph("open")).pack(fill="x", pady=6)
+        ctk.CTkButton(f,text="Closing",command=lambda:self.act_morph("close")).pack(fill="x", pady=6)
 
         # ----- Segmentation -----
         f = ctk.CTkFrame(self.tab_area)
         self.frames["🔍  Segmentation"] = f
-
-        ctk.CTkButton(f, text="Global Threshold", command=self.act_global).pack(fill="x", pady=6)
-        ctk.CTkButton(f, text="Otsu Threshold", command=self.act_otsu).pack(fill="x", pady=6)
-        ctk.CTkButton(f, text="Watershed", command=self.act_watershed).pack(fill="x", pady=6)
+        ctk.CTkButton(f,text="Global Threshold",command=self.act_global).pack(fill="x", pady=6)
+        ctk.CTkButton(f,text="Otsu Threshold",command=self.act_otsu).pack(fill="x", pady=6)
+        ctk.CTkButton(f,text="Watershed",command=self.act_watershed).pack(fill="x", pady=6)
 
         # ----- Frequency -----
         f = ctk.CTkFrame(self.tab_area)
         self.frames["🌐  Frequency"] = f
-
         self.entry_cut = ctk.CTkEntry(f, placeholder_text="Cutoff/Sigma")
         self.entry_cut.pack(fill="x", pady=4)
+        ctk.CTkButton(f,text="Ideal LPF",command=self.act_ideal_lpf).pack(fill="x", pady=4)
+        ctk.CTkButton(f,text="Ideal HPF",command=self.act_ideal_hpf).pack(fill="x", pady=4)
+        ctk.CTkButton(f,text="Gaussian LPF",command=self.act_gaussian_lpf).pack(fill="x", pady=4)
+        ctk.CTkButton(f,text="Gaussian HPF",command=self.act_gaussian_hpf).pack(fill="x", pady=4)
 
-        ctk.CTkButton(f, text="Ideal LPF", command=self.act_ideal_lpf).pack(fill="x", pady=4)
-        ctk.CTkButton(f, text="Ideal HPF", command=self.act_ideal_hpf).pack(fill="x", pady=4)
-        ctk.CTkButton(f, text="Gaussian LPF", command=self.act_gaussian_lpf).pack(fill="x", pady=4)
-        ctk.CTkButton(f, text="Gaussian HPF", command=self.act_gaussian_hpf).pack(fill="x", pady=4)
+    # ---------------- IMAGE DISPLAY ----------------
+    def show_input(self):
+        pil=pil_thumbnail_for_display(to_pil_from_bgr(self.img_current))
+        if pil is None:return
+        imgtk=ImageTk.PhotoImage(pil)
+        self.input_disp.configure(image=imgtk)
+        self.input_disp.image=imgtk
 
-    # ---------------------------------------------------------
-    # IMAGE UI FUNCTIONS
-    # ---------------------------------------------------------
+    def show_output(self,out):
+        if out is None:return
+        if out.ndim==2: out=cv2.cvtColor(out,cv2.COLOR_GRAY2BGR)
+        pil=pil_thumbnail_for_display(to_pil_from_bgr(out))
+        imgtk=ImageTk.PhotoImage(pil)
+        self.output_disp.configure(image=imgtk)
+        self.output_disp.image=imgtk
+        self.img_output=out.copy()
+
+    def clear_output(self):
+        self.output_disp.configure(image="")
+        self.output_disp.image=None
+
+    # ---------------- File Ops ----------------
     def load_image(self):
         path=filedialog.askopenfilename(filetypes=[("Images","*.jpg *.png *.jpeg *.bmp *.tiff")])
         if not path: return
@@ -382,29 +406,7 @@ class ImageToolApp(ctk.CTk):
         c=1 if self.img_current.ndim==2 else self.img_current.shape[2]
         messagebox.showinfo("Meta", f"{w}x{h}\nChannels:{c}")
 
-    def show_input(self):
-        pil=pil_thumbnail_for_display(to_pil_from_bgr(self.img_current))
-        if pil is None:return
-        imgtk=ImageTk.PhotoImage(pil)
-        self.input_disp.configure(image=imgtk)
-        self.input_disp.image=imgtk
-
-    def show_output(self,out):
-        if out is None:return
-        if out.ndim==2: out=cv2.cvtColor(out,cv2.COLOR_GRAY2BGR)
-        pil=pil_thumbnail_for_display(to_pil_from_bgr(out))
-        imgtk=ImageTk.PhotoImage(pil)
-        self.output_disp.configure(image=imgtk)
-        self.output_disp.image=imgtk
-        self.img_output=out.copy()
-
-    def clear_output(self):
-        self.output_disp.configure(image="")
-        self.output_disp.image=None
-
-    # ---------------------------------------------------------
-    # Action functions
-    # ---------------------------------------------------------
+    # ---------------- FILTER ACTIONS ----------------
     def act_grayscale(self):
         if self.img_current is None:return
         self.show_output(to_gray(self.img_current))
@@ -500,6 +502,14 @@ class ImageToolApp(ctk.CTk):
         if self.img_current is None:return
         self.show_output(canny_edge(self.img_current,50,150))
 
+    def act_morph(self, mode):
+        if self.img_current is None:return
+        try: k=int(self.entry_morph.get())
+        except: k=3
+        g=to_gray(self.img_current)
+        _,b=cv2.threshold(g,127,255,cv2.THRESH_BINARY)
+        self.show_output(morphology_op(b,mode,k))
+
     def act_global(self):
         if self.img_current is None:return
         g=to_gray(self.img_current)
@@ -541,7 +551,6 @@ class ImageToolApp(ctk.CTk):
         except:s=10
         g=to_gray(self.img_current)
         self.show_output(gaussian_high_pass(g,s))
-
 
 # ---------------------------------------------------------
 # Run App
